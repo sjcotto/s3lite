@@ -1,0 +1,18 @@
+# Binary
+s3lite
+s3lite-data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+*.exe
+*.test
+*.prof
