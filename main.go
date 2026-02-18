@@ -30,6 +30,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -45,6 +46,10 @@ func main() {
 	cacheSize := flag.Int("cache", 4096, "Page cache size (number of pages)")
 	execute := flag.String("e", "", "Execute SQL and exit")
 
+	// HTTP server flags
+	port := flag.Int("port", 0, "HTTP server port (0 = REPL mode)")
+	apiKey := flag.String("api-key", "", "API key for HTTP server authentication")
+
 	// S3 flags
 	s3Bucket := flag.String("s3-bucket", "", "S3 bucket name")
 	s3Endpoint := flag.String("s3-endpoint", "", "S3 endpoint URL")
@@ -52,6 +57,11 @@ func main() {
 	s3Prefix := flag.String("s3-prefix", "", "S3 key prefix")
 
 	flag.Parse()
+
+	// Allow API key from environment variable
+	if *apiKey == "" {
+		*apiKey = os.Getenv("S3LITE_API_KEY")
+	}
 
 	// Build config
 	cfg := engine.Config{
@@ -86,6 +96,13 @@ func main() {
 	}()
 
 	exec := sql.NewExecutor(db)
+
+	// HTTP server mode
+	if *port > 0 {
+		srv := NewServer(db, *apiKey)
+		log.Fatal(srv.ListenAndServe(*port))
+		return
+	}
 
 	// Single command mode
 	if *execute != "" {
